@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import CanvasApp from './Canvas'; 
+import { useState, useEffect } from 'react';
+// @ts-ignore
+import CanvasApp from './Canvas';
 
 // REPLACE THE LINK BELOW WITH YOUR GOOGLE APPS SCRIPT URL
 const API_URL = "https://script.google.com/macros/s/AKfycbz_uZbMfqVbFpBplYlWu-qDU8IZkJ0qBqmm1NfeNUpHrJsSxV0J-NuoBoTLHUyakDzT_w/exec";
