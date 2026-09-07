@@ -1,0 +1,56 @@
+type SheetCell = string | number | boolean | null | undefined;
+
+type SheetItem = {
+  index_: number;
+  row: SheetCell[];
+};
+
+export const localPreviewData: SheetItem[] = [
+  { index_: 1, row: ['DATE', 'MEETING DESCRIPTION', 'PRESENTER', 'JC Title', 'DOI', 'Comments'] },
+  { index_: 2, row: ['18-Sep', 'Intro'] },
+  { index_: 3, row: ['25-Sep', 'Data Blitz x3', 'Harry Trewhitt (Hall), Janice Kamajaya (KCL), Tish McMullan (Hall)'] },
+  { index_: 4, row: ['2-Oct', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)', '', '', '', '', 'Counts by meeting type'] },
+  { index_: 5, row: ['09-Oct', 'Data Blitz x3', 'Orla Bonnar (Hall), Mansil Yoon (KCL), Silvia Hnatova (Hall)', '', '', '', '', 'Hall Lab', 'Talk slots', 'Data Blitz', 'Journal Club', 'WM'] },
+  { index_: 6, row: ['16-Oct', 'Journal Club', 'Harry Trewhitt (Hall), Janice Kamajaya (KCL)', '', '', '', '', 'Albeshr Almasri', 5, 4, 1, 8] },
+  { index_: 7, row: ['23-Oct', 'HALF TERM', '', '', '', '', '', 'Catherine Hall', 0, 0, 0, 8] },
+  { index_: 8, row: ['30-Oct', 'Data Blitz x3', 'Yingyi Zhou (Hall), Pingting Cao (KCL), Albeshr Almasri (Hall)', '', '', '', '', 'Harry Trewhitt', 5, 4, 1, 8] },
+  { index_: 9, row: ['06-Nov', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)', '', '', '', '', 'Orla Bonnar', 6, 4, 2, 0] },
+  { index_: 10, row: ['13-Nov', 'Data Blitz x3', 'Harry Trewhitt (Hall), Jackson McLean (KCL), Xiaolan Wu (KCL)', '', '', '', '', 'Silvia Hnatova', 5, 4, 1, 0] },
+  { index_: 11, row: ['20-Nov', 'Journal Club', 'Tish McMullan (Hall), Mansil Yoon (KCL)', '', '', '', '', 'Tish McMullan', 6, 4, 2, 0] },
+  { index_: 12, row: ['27-Nov', 'Data Blitz x3', 'Tish McMullan (Hall), Svenja Vorthmann (KCL), Sunny Du (KCL)', '', '', '', '', 'Yingyi Zhou', 5, 4, 1, 0] },
+  { index_: 13, row: ['04-Dec', 'XMAS PARTY', '', '', '', '', '', 'Hamilton-Whitaker / KCL', 'Talk slots', 'Data Blitz', 'Journal Club', 'WM'] },
+  { index_: 14, row: ['11-Dec', 'XMAS HOLIDAYS', '', '', '', '', '', 'Alex Mellor', 4, 3, 1, 0] },
+  { index_: 15, row: ['18-Dec', '', '', '', '', '', '', 'Craig Sexton', 3, 3, 0, 8] },
+  { index_: 16, row: ['25-Dec', '', '', '', '', '', '', 'Jackson McLean', 4, 3, 1, 0] },
+  { index_: 17, row: ['01-Jan', 'HAPPY NY', 'All', '', '', '', '', 'Janice Kamajaya', 4, 3, 1, 8] },
+  { index_: 18, row: ['8-Jan', 'Journal Club', 'Orla Bonnar (Hall), Pingting Cao (KCL)', '', '', '', '', 'Laren Alphan', 3, 3, 0, 0] },
+  { index_: 19, row: ['15-Jan', 'Data Blitz x3', 'Orla Bonnar (Hall), Laren Alphan (KCL), Craig Sexton (KCL)', '', '', '', '', 'Mansil Yoon', 4, 3, 1, 0] },
+  { index_: 20, row: ['22-Jan', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)', '', '', '', '', 'Nicola Hamilton-Whitaker', 0, 0, 0, 8] },
+  { index_: 21, row: ['29-Jan', 'Data Blitz x3', 'Silvia Hnatova (Hall), Alex Mellor (KCL), Yingyi Zhou (Hall)', '', '', '', '', 'Pingting Cao', 4, 3, 1, 0] },
+  { index_: 22, row: ['5-Feb', 'Journal Club', 'Silvia Hnatova (Hall), Jackson McLean (KCL)', '', '', '', '', 'Sunny Du', 4, 3, 1, 8] },
+  { index_: 23, row: ['12-Feb', 'HALF TERM', '', '', '', '', '', 'Svenja Vorthmann', 4, 3, 1, 0] },
+  { index_: 24, row: ['19-Feb', 'Data Blitz x3', 'Albeshr Almasri (Hall), Janice Kamajaya (KCL), Mansil Yoon (KCL)', '', '', '', '', 'Xiaolan Wu', 4, 3, 1, 0] },
+  { index_: 25, row: ['26-Feb', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)'] },
+  { index_: 26, row: ['5-Mar', 'Data Blitz x3', 'Harry Trewhitt (Hall), Pingting Cao (KCL), Jackson McLean (KCL)'] },
+  { index_: 27, row: ['12-Mar', 'Journal Club', 'Yingyi Zhou (Hall), Xiaolan Wu (KCL)'] },
+  { index_: 28, row: ['19-Mar', 'Data Blitz x3', 'Tish McMullan (Hall), Xiaolan Wu (KCL), Svenja Vorthmann (KCL)'] },
+  { index_: 29, row: ['26-Mar', 'EASTER HOLIDAYS'] },
+  { index_: 30, row: ['2-Apr'] },
+  { index_: 31, row: ['09-Apr', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)'] },
+  { index_: 32, row: ['16-Apr', 'Data Blitz x3', 'Orla Bonnar (Hall), Sunny Du (KCL), Laren Alphan (KCL)'] },
+  { index_: 33, row: ['23-Apr', 'Journal Club', 'Albeshr Almasri (Hall), Svenja Vorthmann (KCL)'] },
+  { index_: 34, row: ['30-Apr', 'Data Blitz x3', 'Silvia Hnatova (Hall), Craig Sexton (KCL), Alex Mellor (KCL)'] },
+  { index_: 35, row: ['07-May', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)'] },
+  { index_: 36, row: ['14-May', 'Data Blitz x3', 'Yingyi Zhou (Hall), Janice Kamajaya (KCL), Albeshr Almasri (Hall)'] },
+  { index_: 37, row: ['21-May', 'HALF TERM'] },
+  { index_: 38, row: ['28-May', 'Data Blitz x3', 'Harry Trewhitt (Hall), Mansil Yoon (KCL), Pingting Cao (KCL)'] },
+  { index_: 39, row: ['04-Jun', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)'] },
+  { index_: 40, row: ['11-Jun', 'Data Blitz x3', 'Tish McMullan (Hall), Jackson McLean (KCL), Xiaolan Wu (KCL)'] },
+  { index_: 41, row: ['18-Jun', 'Journal Club', 'Orla Bonnar (Hall), Alex Mellor (KCL)'] },
+  { index_: 42, row: ['25-Jun', 'Data Blitz x3', 'Orla Bonnar (Hall), Svenja Vorthmann (KCL), Sunny Du (KCL)'] },
+  { index_: 43, row: ['02-Jul', 'WM Data', 'Catherine Hall (Hall), Harry Trewhitt (Hall), Albeshr Almasri (Hall), Nicola Hamilton-Whitaker (KCL), Janice Kamajaya (KCL), Sunny Du (KCL), Craig Sexton (KCL)'] },
+  { index_: 44, row: ['9-Jul', 'Data Blitz x3', 'Silvia Hnatova (Hall), Laren Alphan (KCL), Craig Sexton (KCL)'] },
+  { index_: 45, row: ['16-Jul', 'Journal Club', 'Tish McMullan (Hall), Sunny Du (KCL)'] },
+  { index_: 46, row: ['23-Jul', 'Data Blitz x3', 'Yingyi Zhou (Hall), Alex Mellor (KCL), Albeshr Almasri (Hall)'] },
+  { index_: 47, row: ['30-Jul', 'Final Meeting'] }
+];

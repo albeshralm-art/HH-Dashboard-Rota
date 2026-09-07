@@ -15,6 +15,24 @@ import {
   Filter
 } from 'lucide-react';
 
+const ACADEMIC_YEAR_LABEL = 'Academic Year 2026-2027';
+const ACADEMIC_YEAR_START = 2026;
+const ENABLE_DASHBOARD_EDITING = false;
+const MONTH_INDEX = {
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11
+};
+
 function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
   const [editingItem, setEditingItem] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -36,7 +54,27 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
 
   const parseDate = (dateStr) => {
     if (!dateStr) return null;
-    // This allows JavaScript to automatically convert the UTC time back to your local UK time!
+    if (typeof dateStr === 'number') {
+      const googleEpoch = new Date(Date.UTC(1899, 11, 30));
+      googleEpoch.setUTCDate(googleEpoch.getUTCDate() + dateStr);
+      return new Date(googleEpoch.getUTCFullYear(), googleEpoch.getUTCMonth(), googleEpoch.getUTCDate());
+    }
+
+    const textDate = String(dateStr).trim();
+    const academicDate = textDate.match(/^(\d{1,2})[-\s/]([A-Za-z]{3,})(?:[-\s/](\d{2,4}))?$/);
+    if (academicDate) {
+      const day = Number(academicDate[1]);
+      const month = MONTH_INDEX[academicDate[2].slice(0, 3).toLowerCase()];
+      const explicitYear = academicDate[3] ? Number(academicDate[3]) : null;
+
+      if (Number.isFinite(day) && month !== undefined) {
+        const year = explicitYear
+          ? explicitYear + (explicitYear < 100 ? 2000 : 0)
+          : month >= 8 ? ACADEMIC_YEAR_START : ACADEMIC_YEAR_START + 1;
+        return new Date(year, month, day);
+      }
+    }
+
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? null : d;
   };
@@ -54,7 +92,10 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
     doi: headerRow.findIndex(h => h === 'DOI'),
     comments: headerRow.findIndex(h => h === 'Comments'),
     statsName: 7, 
-    statsVal: 8   
+    statsTalk: 8,
+    statsDataBlitz: 9,
+    statsJournalClub: 10,
+    statsWm: 11
   };
 
   // Transform raw data into structured objects
@@ -115,21 +156,50 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
     meetings.filter(m => m.date && m.date >= today).sort((a, b) => a.date - b.date)[0]
   , [meetings, today]);
 
-  // Extract statistics
+  const readNumber = (value) => {
+    if (typeof value === 'number') return value;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  // Extract statistics from the dynamic side counter in the sheet.
   const stats = useMemo(() => {
-    const hall = [];
-    const hw = [];
+    const sections = { hall: [], hw: [] };
+    let activeSection = null;
+
     data.forEach(item => {
-      const name = item.row[colMap.statsName];
-      const val = item.row[colMap.statsVal];
-      if (name && typeof val === 'number') {
-        // Simple logic: Hall Lab entries are higher up in the spreadsheet range
-        if (item.index_ < 13) hall.push({ name, val });
-        else hw.push({ name, val });
+      const name = sanitizeText(item.row[colMap.statsName]);
+      if (!name) return;
+
+      const upperName = name.toUpperCase();
+      if (upperName.includes('HALL LAB')) {
+        activeSection = 'hall';
+        return;
+      }
+
+      if (upperName.includes('HAMILTON') || upperName.includes('KCL')) {
+        activeSection = 'hw';
+        return;
+      }
+
+      if (!activeSection || upperName.includes('COUNTS') || upperName.includes('TALK SLOTS')) return;
+
+      const talkSlots = readNumber(item.row[colMap.statsTalk]);
+      const dataBlitz = readNumber(item.row[colMap.statsDataBlitz]);
+      const journalClub = readNumber(item.row[colMap.statsJournalClub]);
+      const wm = readNumber(item.row[colMap.statsWm]);
+
+      if (talkSlots || dataBlitz || journalClub || wm) {
+        sections[activeSection].push({ name, talkSlots, dataBlitz, journalClub, wm });
       }
     });
-    return { hall, hw };
+    return sections;
   }, [data, colMap]);
+
+  const maxTalkSlots = useMemo(() => {
+    const allStats = [...stats.hall, ...stats.hw];
+    return Math.max(1, ...allStats.map(s => s.talkSlots));
+  }, [stats]);
 
   // --- 3. Style Helpers ---
   const getSessionStyles = (desc) => {
@@ -184,6 +254,47 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
     };
   };
 
+  const getPresenterLabel = (desc) => {
+    const d = (desc || '').toUpperCase();
+    if (d.includes('WM DATA')) return 'Expected Attendees';
+    if (d.includes('JOURNAL CLUB') || d.includes('DATA BLITZ')) return 'Presenters';
+    return 'Lead Speaker';
+  };
+
+  const getSessionGuidance = (desc) => {
+    const d = (desc || '').toUpperCase();
+
+    if (d.includes('JOURNAL CLUB')) {
+      return {
+        title: 'Journal Club format',
+        text: 'Two presenters for now. We can trial a white-paper style session where everyone reads the paper and may be asked to discuss any figure.'
+      };
+    }
+
+    if (d.includes('DATA BLITZ')) {
+      return {
+        title: 'Data Blitz format',
+        text: 'Three presenters, about 10 minutes each, with time kept for discussion. Please include a quick background slide, define abbreviations, and explain any MOA before the data.'
+      };
+    }
+
+    if (d.includes('WM DATA')) {
+      return {
+        title: 'WM meeting',
+        text: 'Catherine, Nicola, Janice, Craig, Sunny, Harry, and Albeshr are expected. Everyone else is welcome to join.'
+      };
+    }
+
+    if (d.includes('INTRO')) {
+      return {
+        title: 'Intro session',
+        text: 'Please share who you are, what you will be working on this year, and one fun fact or memorable thing from the last year.'
+      };
+    }
+
+    return null;
+  };
+
   const handleSave = (formData) => {
     const row = [];
     row[colMap.date] = formData.date;
@@ -203,6 +314,7 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
   };
 
   const nextStyles = nextMeeting ? getSessionStyles(nextMeeting.description) : null;
+  const nextGuidance = nextMeeting ? getSessionGuidance(nextMeeting.description) : null;
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] text-slate-900 font-sans overflow-hidden">
@@ -216,7 +328,7 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900">Lab Rota & Journal Club</h1>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Academic Year 2025-2026</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{ACADEMIC_YEAR_LABEL}</p>
             </div>
           </div>
           
@@ -231,13 +343,15 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
                 className="pl-10 pr-4 py-2.5 bg-slate-100 border-transparent border-2 focus:bg-white focus:border-slate-200 focus:ring-4 focus:ring-slate-500/5 rounded-2xl text-sm w-72 transition-all outline-none font-medium"
               />
             </div>
-            <button 
-              onClick={() => setIsAdding(true)}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-lg active:scale-95"
-            >
-              <Plus size={18} strokeWidth={3} />
-              Add Session
-            </button>
+            {ENABLE_DASHBOARD_EDITING && (
+              <button 
+                onClick={() => setIsAdding(true)}
+                className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-lg active:scale-95"
+              >
+                <Plus size={18} strokeWidth={3} />
+                Add Session
+              </button>
+            )}
           </div>
         </header>
 
@@ -272,7 +386,7 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {nextMeeting.presenter && (
                       <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Lead Speaker</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{getPresenterLabel(nextMeeting.description)}</span>
                         <div className="flex items-center gap-2 font-bold text-slate-700">
                           <User size={14} className={nextStyles.heroBadgeText} />
                           {nextMeeting.presenter}
@@ -290,6 +404,14 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
                             Reference <ExternalLink size={12} className="group-hover:translate-x-0.5 transition-transform" />
                           </a>
                         )}
+                      </div>
+                    )}
+                    {nextGuidance && (
+                      <div className={`${nextStyles.heroLight} border ${nextStyles.heroBorder} p-4 rounded-2xl lg:col-span-2`}>
+                        <span className={`text-[10px] font-black ${nextStyles.heroBadgeText} uppercase tracking-widest block mb-2`}>{nextGuidance.title}</span>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                          {nextGuidance.text}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -357,20 +479,22 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
                     </div>
 
                     {/* Actions Block */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                      <button 
-                        onClick={() => setEditingItem(m)}
-                        className="p-2.5 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button 
-                        onClick={() => deleteItem(m.index_)}
-                        className="p-2.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-xl transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    {ENABLE_DASHBOARD_EDITING && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          onClick={() => setEditingItem(m)}
+                          className="p-2.5 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={() => deleteItem(m.index_)}
+                          className="p-2.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-xl transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -391,20 +515,25 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Hall Lab</span>
-              <span className="text-[10px] font-bold text-emerald-900 uppercase">Sessions</span>
+              <span className="text-[10px] font-bold text-emerald-900 uppercase">Talk Slots</span>
             </div>
             <div className="space-y-5">
               {stats.hall.map((s, i) => (
                 <div key={i} className="group">
                   <div className="flex justify-between items-center text-xs mb-2">
                     <span className="font-bold text-slate-700 group-hover:text-emerald-900 transition-colors">{s.name}</span>
-                    <span className="font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg">{s.val}</span>
+                    <span className="font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg">{s.talkSlots}</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-emerald-900 rounded-full transition-all duration-700 shadow-sm shadow-emerald-900/10" 
-                      style={{ width: `${(s.val / 5) * 100}%` }}
+                      style={{ width: `${(s.talkSlots / maxTalkSlots) * 100}%` }}
                     />
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1 text-[10px] font-black uppercase tracking-tight text-slate-500">
+                    <span className="rounded-lg bg-emerald-50 px-2 py-1 text-emerald-700">DB {s.dataBlitz}</span>
+                    <span className="rounded-lg bg-indigo-50 px-2 py-1 text-indigo-700">JC {s.journalClub}</span>
+                    {s.wm > 0 && <span className="rounded-lg bg-sky-50 px-2 py-1 text-sky-700">WM {s.wm}</span>}
                   </div>
                 </div>
               ))}
@@ -415,25 +544,40 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
           <div className="space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Hamilton-Whitaker</span>
-              <span className="text-[10px] font-bold text-rose-400 uppercase">Sessions</span>
+              <span className="text-[10px] font-bold text-rose-400 uppercase">Talk Slots</span>
             </div>
             <div className="space-y-5">
               {stats.hw.map((s, i) => (
                 <div key={i} className="group">
                   <div className="flex justify-between items-center text-xs mb-2">
                     <span className="font-bold text-slate-700 group-hover:text-rose-900 transition-colors">{s.name}</span>
-                    <span className="font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg">{s.val}</span>
+                    <span className="font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg">{s.talkSlots}</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-rose-400 rounded-full transition-all duration-700 shadow-sm shadow-rose-400/10" 
-                      style={{ width: `${(s.val / 5) * 100}%` }}
+                      style={{ width: `${(s.talkSlots / maxTalkSlots) * 100}%` }}
                     />
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1 text-[10px] font-black uppercase tracking-tight text-slate-500">
+                    <span className="rounded-lg bg-emerald-50 px-2 py-1 text-emerald-700">DB {s.dataBlitz}</span>
+                    <span className="rounded-lg bg-indigo-50 px-2 py-1 text-indigo-700">JC {s.journalClub}</span>
+                    {s.wm > 0 && <span className="rounded-lg bg-sky-50 px-2 py-1 text-sky-700">WM {s.wm}</span>}
                   </div>
                 </div>
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-3xl">
+          <div className="flex items-center gap-2 mb-3 text-indigo-900">
+            <Info size={16} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Journal Club Format</span>
+          </div>
+          <p className="text-[11px] text-indigo-900/70 leading-relaxed font-medium">
+            Two presenters are listed for now. The group may test a white-paper style session where everyone reads the paper and can be invited to discuss any figure.
+          </p>
         </div>
 
         <div className="mt-auto p-5 bg-slate-50 border border-slate-100 rounded-3xl">
@@ -448,7 +592,7 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
       </aside>
 
       {/* Entry Editor Modal */}
-      {(isAdding || editingItem) && (
+      {ENABLE_DASHBOARD_EDITING && (isAdding || editingItem) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
