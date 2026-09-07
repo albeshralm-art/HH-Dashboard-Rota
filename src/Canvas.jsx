@@ -17,6 +17,7 @@ import {
 
 const ACADEMIC_YEAR_LABEL = 'Academic Year 2026-2027';
 const ACADEMIC_YEAR_START = 2026;
+const TEAMS_MEETING_URL = 'https://teams.microsoft.com/meet/387117726034966?p=aITRkHssAsroKo6xpQ';
 const ENABLE_DASHBOARD_EDITING = false;
 const MONTH_INDEX = {
   jan: 0,
@@ -332,7 +333,7 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative group">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" />
               <input 
@@ -340,9 +341,18 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
                 placeholder="Search sessions..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2.5 bg-slate-100 border-transparent border-2 focus:bg-white focus:border-slate-200 focus:ring-4 focus:ring-slate-500/5 rounded-2xl text-sm w-72 transition-all outline-none font-medium"
+                className="pl-10 pr-4 py-2.5 bg-slate-100 border-transparent border-2 focus:bg-white focus:border-slate-200 focus:ring-4 focus:ring-slate-500/5 rounded-2xl text-sm w-56 xl:w-72 transition-all outline-none font-medium"
               />
             </div>
+            <a
+              href={TEAMS_MEETING_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 bg-[#6264A7] hover:bg-[#5557a5] text-white px-4 py-2.5 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-indigo-200/60 active:scale-95 whitespace-nowrap"
+            >
+              Join Teams
+              <ExternalLink size={16} strokeWidth={3} />
+            </a>
             {ENABLE_DASHBOARD_EDITING && (
               <button 
                 onClick={() => setIsAdding(true)}
@@ -414,6 +424,23 @@ function App({ data, updateItem, deleteItem, insertItem, moveItem }) {
                         </p>
                       </div>
                     )}
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl lg:col-span-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest block mb-2">Teams link</span>
+                        <p className="text-sm font-semibold text-white/80 leading-relaxed">
+                          Same meeting link every Friday until 30 July 2027.
+                        </p>
+                      </div>
+                      <a
+                        href={TEAMS_MEETING_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-2 bg-white text-slate-900 hover:bg-indigo-50 px-4 py-2.5 rounded-2xl text-sm font-black transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        Join Teams
+                        <ExternalLink size={15} strokeWidth={3} />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
